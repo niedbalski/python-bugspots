@@ -11,7 +11,7 @@
 #  How to install:
 #  ===============
 #  
-#  $ pip install bugspots
+#  $ pip install bug-spots
 #
 #  How to use:
 #  ==========
