@@ -1,21 +1,19 @@
-# Mercurial Bugspots
+# Bugspots
 
 A Python based implementation of the bug prediction algorithm proposed by Google: 
 [Bug Prediction at Google](http://google-engtools.blogspot.com/2011/12/bug-prediction-at-google.html)
 
+Currently supports : *Git* and *Mercurial* repositories
+
 ## Installation
 ```
-$ wget https://raw.github.com/niedbalski/bugspots/master/bugspots.py
-```
-
-Add the extension to your .hgrc file:
-
-```
-#  [extensions]
-   bugspots=/path/to/this/bugspot.py
+$ pip install bugspots
 ```
 
 ## Example usage
+
+Move to the repository directory 
+
 ```
     niedbalski@machine:~/src/rabbitmq-server$ hg bugspots .
 

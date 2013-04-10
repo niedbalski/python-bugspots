@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-dependencies = [ "mercurial", "dulwich" ]
+dependencies = [ "vcs", ""mercurial", "dulwich" ]
 
 setup(
     name="bugspots",
