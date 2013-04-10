@@ -3,7 +3,7 @@
 A Python based implementation of the bug prediction algorithm proposed by Google: 
 [Bug Prediction at Google](http://google-engtools.blogspot.com/2011/12/bug-prediction-at-google.html)
 
-## Usage
+## Installation
 ```
 $ wget https://raw.github.com/niedbalski/bugspots/master/bugspots.py
 ```
@@ -12,16 +12,12 @@ Add the extension to your .hgrc file:
 
 ```
 #  [extensions]
-#  bugspots=/path/to/this/bugspot.py
-```
-
-$ hg bugspots (In the root path of your repo, use --help)
+   bugspots=/path/to/this/bugspot.py
 ```
 
 ## Example usage
 ```
     niedbalski@machine:~/src/rabbitmq-server$ hg bugspots .
-
 
     Scanning file:/home/aktive/src/rabbitmq-server repo, branch:default
     Found 16 bugfix commits on the last 30 days
