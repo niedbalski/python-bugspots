@@ -20,11 +20,11 @@ $ hg bugspots (In the root path of your repo, use --help)
 
 ## Example usage
 ```
-niedbalski@machine:~/src/rabbitmq-server$ hg bugspots .
+    niedbalski@machine:~/src/rabbitmq-server$ hg bugspots .
 
 
-Scanning file:/home/aktive/src/rabbitmq-server repo, branch:default
-Found 16 bugfix commits on the last 30 days
+    Scanning file:/home/aktive/src/rabbitmq-server repo, branch:default
+    Found 16 bugfix commits on the last 30 days
 
     Fixes
     --------------------------------------------------------------------------------
