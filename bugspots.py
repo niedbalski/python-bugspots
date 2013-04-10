@@ -12,7 +12,7 @@
 #  ===============
 #  Add the following lines to your .hgrc file into your extensions section:
 #  [extensions]
-#  bugspots=/path/to/this/file
+#  bugspots=
 #
 #  How to use:
 #  ==========

@@ -5,20 +5,29 @@ A Python based implementation of the bug prediction algorithm proposed by Google
 
 ## Usage
 ```
-$ pip install bugspots
+$ wget https://raw.github.com/niedbalski/bugspots/master/bugspots.py
+```
+
+Add the extension to your .hgrc file:
+
+```
+#  [extensions]
+#  bugspots=/path/to/this/bugspot.py
+```
+
 $ hg bugspots (In the root path of your repo, use --help)
 ```
 
 ## Example usage
-
+```
 niedbalski@machine:~/src/rabbitmq-server$ hg bugspots .
 
 
 Scanning file:/home/aktive/src/rabbitmq-server repo, branch:default
 Found 16 bugfix commits on the last 30 days
 
-Fixes
---------------------------------------------------------------------------------
+    Fixes
+    --------------------------------------------------------------------------------
       -Oops. This was part of an (early, wrong) attempt at bug 25474 which got committed as part of f1317bb80df9 (bug 25358) by mistake. Remove.
       -merge bug19375 into default
       -merge bug25488 into default
@@ -36,10 +45,11 @@ Fixes
       -merge bug25487 into default
       -Merge bug25519.
 
-Hotspots
---------------------------------------------------------------------------------
+    Hotspots
+    --------------------------------------------------------------------------------
       0.23 = src/rabbit_node_monitor.erl
       0.15 = src/rabbit_channel.erl
       0.08 = src/rabbit_tests.erl
       0.08 = src/rabbit_amqqueue_process.erl
       0.08 = src/rabbit_exchange.erl
+```
