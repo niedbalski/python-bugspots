@@ -4,7 +4,7 @@ dependencies = [ "vcs", "mercurial", "dulwich" ]
 
 setup(
     name="bug-spots",
-    version="0.2.2",
+    version="0.2.3",
     packages=find_packages(),
     install_requires=dependencies,
     author="Jorge Niedbalski R.",
@@ -13,10 +13,12 @@ setup(
     keywords="bugspot bug spots bug prediction",
     include_package_data=True,
     license="BSD",
-    entry_points="""
-    [console_scripts]
-    bugspots = bugspots:main
-    """,
+    entry_points={
+	'console_scripts' : [
+		'bugspots = bugspots:main'
+	]
+    },
+
     classifiers=['Development Status :: 3 - Alpha',
                 'Intended Audience :: Developers',
                 'Operating System :: Unix ']
