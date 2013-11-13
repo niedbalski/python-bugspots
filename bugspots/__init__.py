@@ -103,7 +103,7 @@ def get_code_hotspots(options):
             if not filename in hotspots:
                 hotspots[filename] = 0
             try:
-                hotspot_factor = 1 / (1 + math.exp(-12 * factor) + 12)
+                hotspot_factor = 1 / (1 + math.exp((-12 * factor) + 12))
             except:
                 pass
 
