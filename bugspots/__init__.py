@@ -97,13 +97,13 @@ def get_code_hotspots(options):
 
         factor = this_commit_diff / last_commit_diff
 
-        for filename in files:
-            factor = 1 - factor
+        factor = 1 - factor
 
+        for filename in files:
             if not filename in hotspots:
                 hotspots[filename] = 0
             try:
-                hotspot_factor = 1 / (1 + math.exp(-12 * factor) + 12)
+                hotspot_factor = 1 / (1 + math.exp((-12 * factor) + 12))
             except:
                 pass
 
