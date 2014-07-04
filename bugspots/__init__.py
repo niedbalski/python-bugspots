@@ -10,7 +10,7 @@
 #
 #  How to install:
 #  ===============
-#  
+#
 #  $ pip install bug-spots
 #
 #  How to use:
@@ -58,7 +58,7 @@ def get_fix_commits(client, branch, days):
         changelogs = [change for change in client.get_changesets(client.repo)]
 
         for change in changelogs:
-            if change.branch == branch and \
+            if not change.branch or change.branch == branch and \
                     _desc_regex.search(change.message):
                 if change.date >= days_ago:
                     yield((change.message, change.date, change.affected_files))
@@ -158,4 +158,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
