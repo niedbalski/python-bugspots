@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-dependencies = [ "vcs", "mercurial", "dulwich" ]
+dependencies = [ "vcstools-latest" ]
 
 setup(
     name="bug-spots",
-    version="0.2.4",
+    version="0.3",
     packages=find_packages(),
     install_requires=dependencies,
     author="Jorge Niedbalski R.",
