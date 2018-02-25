@@ -61,14 +61,14 @@ def get_current_vcs(path="."):
     raise Exception("Not found a valid VCS repository")
 
 
-def get_fix_commits(branch, days):
+def get_fix_commits(branch, days, nofetch):
     vcs = get_current_vcs()
 
     def get_changesets(days_ago):
         current_branch = vcs.get_current_version_label()
 
         if current_branch != branch:
-            vcs._do_checkout(branch)
+            vcs._do_checkout(branch, not nofetch)
 
         for log in vcs.get_log():
             (date, message, id) = (log['date'], log['message'],
@@ -88,7 +88,7 @@ def get_fix_commits(branch, days):
 
 
 def get_code_hotspots(options):
-    commits = get_fix_commits(options.branch, options.days)
+    commits = get_fix_commits(options.branch, options.days, options.nofetch)
 
     if not commits:
         print("Not found commits matching search criteria")
@@ -158,6 +158,10 @@ def parse_options():
                         help='Use a specific branch',
                         type=str,
                         metavar='branch')
+
+    parser.add_argument("--nofetch",
+                        help='Do not attempt to fetch changes from remote',
+                        action='store_true')
 
     args = parser.parse_args()
     return args
