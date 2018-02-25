@@ -121,7 +121,7 @@ def get_code_hotspots(options):
 
             hotspots[filename] += hotspot_factor
 
-    print("      -%s" % message)
+        print("      -%s" % message)
 
     sorted_hotspots = sorted(hotspots, key=hotspots.get, reverse=True)
 
