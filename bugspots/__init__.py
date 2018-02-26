@@ -61,23 +61,32 @@ def get_current_vcs(path="."):
     raise Exception("Not found a valid VCS repository")
 
 
-def get_fix_commits(branch, days):
+def get_fix_commits(b, days, nofetch, use_current_branch):
     vcs = get_current_vcs()
 
     def get_changesets(days_ago):
         current_branch = vcs.get_current_version_label()
 
+        branch = b
+        if use_current_branch:
+            branch = current_branch
+
         if current_branch != branch:
-            vcs._do_checkout(branch)
+            try:
+                vcs._do_checkout(branch, not nofetch)
+                current_branch = vcs.get_current_version_label()
+            except:
+                print("Error checking out branch: %s\n" % branch)
 
-        for log in vcs.get_log():
-            (date, message, id) = (log['date'], log['message'],
-                                   log['id'])
+        if(current_branch == branch):
+            for log in vcs.get_log():
+                (date, message, id) = (log['date'], log['message'],
+                                       log['id'])
 
-            commit_date = date.replace(tzinfo=None)
-            if commit_date >= days_ago and \
-               description_regex.search(message):
-                yield((message, commit_date, vcs.get_affected_files(id)))
+                commit_date = date.replace(tzinfo=None)
+                if commit_date >= days_ago and \
+                description_regex.search(message):
+                    yield((message, commit_date, vcs.get_affected_files(id)))
 
     days_ago = (datetime.datetime.now() - datetime.timedelta(days=days))
 
@@ -88,11 +97,11 @@ def get_fix_commits(branch, days):
 
 
 def get_code_hotspots(options):
-    commits = get_fix_commits(options.branch, options.days)
+    commits = get_fix_commits(options.branch, options.days, options.nofetch, options.current_branch)
 
     if not commits:
         print("Not found commits matching search criteria")
-        sys.exit(-1)
+        sys.exit(0)
 
     print_summary(".", options.branch, len(commits), options.days)
 
@@ -121,7 +130,7 @@ def get_code_hotspots(options):
 
             hotspots[filename] += hotspot_factor
 
-    print("      -%s" % message)
+        print("      -%s" % message)
 
     sorted_hotspots = sorted(hotspots, key=hotspots.get, reverse=True)
 
@@ -158,6 +167,14 @@ def parse_options():
                         help='Use a specific branch',
                         type=str,
                         metavar='branch')
+
+    parser.add_argument("--nofetch",
+                        help='Do not attempt to fetch changes from remote',
+                        action='store_true')
+
+    parser.add_argument("--current-branch",
+                        help='Use current branch',
+                        action='store_true')
 
     args = parser.parse_args()
     return args
