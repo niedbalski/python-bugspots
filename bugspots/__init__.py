@@ -101,7 +101,7 @@ def get_code_hotspots(options):
 
     if not commits:
         print("Not found commits matching search criteria")
-        sys.exit(-1)
+        sys.exit(0)
 
     print_summary(".", options.branch, len(commits), options.days)
 
