@@ -2,3 +2,8 @@ env/*
 *.swp
 *.pyc
 *.egg-info*
+*.csv
+venv
+build
+dist
+*.txt
