@@ -1,43 +1,27 @@
-#!/usr/bin/env python
-# coding: utf-8
-#-----------------------------------------------------------------------------
-#  Copyright (c) Jorge Niedbalski R. <jnr@metaklass.org>
-#
-#  Tool for calculate Bug Prediction Algorithm suggested by
-#  google. References:
-#   - http://google-engtools.blogspot.com/2011/12/bug-prediction-at-google.html
-#
-#  How to install:
-#  ===============
-#
-#  $ pip install bug-spots
-#
-#  How to use:
-#  ==========
-#
-#  $ mv to repo_director7
-#  $ bugspots ( --help for other options )
-#
-#  License:
-#  ========
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.BSD, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
 from __future__ import print_function
+from vcstools import vcs_abstraction
 
 import argparse
 import datetime
 import math
 import re
 import sys
-
-from vcstools import vcs_abstraction
+import csv
 
 description_regex = re.compile(
-    "^.*([B|b]ug)s?|([f|F]ix(es|ed)?|[c|C]lose(s|d)?).*$")
+    r"^.*([B|b]ug)s?|([f|F]ix(es|ed)?|[c|C]lose(s|d)?)|(([Q|q][F|f])-\d?).*$")
 
+
+def read_from_file(file_path):
+    bugs_string = ''
+    with open(file_path) as file:
+        csv_reader = csv.reader(file, delimiter=',')
+        for row in csv_reader:
+            if bugs_string == '':
+                bugs_string = f'({row[0]})'
+            else:
+                bugs_string = f'{bugs_string}|({row[0]})'
+    return bugs_string
 
 def to_seconds_float(timedelta):
     return (timedelta.seconds + timedelta.microseconds / 1E6)
@@ -53,7 +37,9 @@ def print_summary(uri, branch, fix_count, days):
           % (uri, branch, fix_count, days))
 
 
-def get_current_vcs(path="."):
+def get_current_vcs(path):
+    if path is None:
+        path = '.'
     for vcs_type in vcs_abstraction.get_registered_vcs_types():
         vcs = vcs_abstraction.get_vcs(vcs_type)
         if vcs.static_detect_presence(path):
@@ -61,8 +47,8 @@ def get_current_vcs(path="."):
     raise Exception("Not found a valid VCS repository")
 
 
-def get_fix_commits(branch, days):
-    vcs = get_current_vcs()
+def get_fix_commits(branch, days, path='.'):
+    vcs = get_current_vcs(path)
 
     def get_changesets(days_ago):
         current_branch = vcs.get_current_version_label()
@@ -75,6 +61,7 @@ def get_fix_commits(branch, days):
                                    log['id'])
 
             commit_date = date.replace(tzinfo=None)
+
             if commit_date >= days_ago and \
                description_regex.search(message):
                 yield((message, commit_date, vcs.get_affected_files(id)))
@@ -88,13 +75,13 @@ def get_fix_commits(branch, days):
 
 
 def get_code_hotspots(options):
-    commits = get_fix_commits(options.branch, options.days)
+    commits = get_fix_commits(options.branch, options.days, options.path)
 
     if not commits:
         print("Not found commits matching search criteria")
         sys.exit(-1)
 
-    print_summary(".", options.branch, len(commits), options.days)
+    print_summary(options.path, options.branch, len(commits), options.days)
 
     (last_message, last_date, last_files) = commits[-1]
     current_dt = datetime.datetime.now()
@@ -121,7 +108,7 @@ def get_code_hotspots(options):
 
             hotspots[filename] += hotspot_factor
 
-    print("      -%s" % message)
+        print("      -%s" % message)
 
     sorted_hotspots = sorted(hotspots, key=hotspots.get, reverse=True)
 
@@ -159,13 +146,31 @@ def parse_options():
                         type=str,
                         metavar='branch')
 
-    args = parser.parse_args()
-    return args
+    parser.add_argument("--bugsFile",
+                        help='Use a file with list of bugs',
+                        type=str,
+                        metavar="file")
+
+    parser.add_argument("--paths",
+                        help='Provide repository paths to look into',
+                        type=str,
+                        nargs="*",
+                        metavar="paths")
+
+    return parser.parse_args()
 
 
 def main():
     options = parse_options()
-    print_code_hotspots(options)
+    if options.bugsFile is not None:
+        bugs_list = read_from_file(options.bugsFile)
+        global description_regex
+        description_regex = re.compile(f'^.*({bugs_list}).*$')
+    for path in options.paths:
+        option = options
+        option.path = path
+        print_code_hotspots(option)
+
 
 if __name__ == '__main__':
     main()
