@@ -8,7 +8,6 @@ setup(
     packages=find_packages(),
     install_requires=dependencies,
     author="Punit Goswami",
-    author_email="punit.goswami@wingify.com",
     description="A Python based implementation of the bug prediction algorithm proposed by Google",
     keywords="bughotspot bug spots bug prediction",
     include_package_data=True,
