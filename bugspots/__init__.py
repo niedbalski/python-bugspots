@@ -33,7 +33,7 @@ def time_diff(from_t, to):
 
 def print_summary(uri, branch, fix_count, days):
     print("""\n\nScanning %s repo, branch:%s\n"""
-          """Found %d bugfix commits on the last %d days"""
+          """Found %d bugfix commits in the last %d days"""
           % (uri, branch, fix_count, days))
 
 
@@ -78,8 +78,9 @@ def get_code_hotspots(options):
     commits = get_fix_commits(options.branch, options.days, options.path)
 
     if not commits:
-        print("Not found commits matching search criteria")
-        sys.exit(-1)
+        print(
+            f"Did not find commits matching search criteria for repo at: {options.path} branch: {options.branch}")
+        return None
 
     print_summary(options.path, options.branch, len(commits), options.days)
 
@@ -118,9 +119,11 @@ def get_code_hotspots(options):
 
 
 def print_code_hotspots(options):
-    for factor, filename in get_code_hotspots(options):
-        print("      %.2f = %s" % (factor, filename))
-    print("\n")
+    code_hotspots = get_code_hotspots(options)
+    if code_hotspots is not None:
+        for factor, filename in code_hotspots:
+            print("      %.2f = %s" % (factor, filename))
+        print("\n")
 
 
 def parse_options():
