@@ -14,9 +14,11 @@ markdown_output = str(
     f'# Bughotspots Report\n### Generated at {datetime.datetime.now()}\n```console')
 
 
-def write_to_markdown(content):
+def output_report(content):
+    print(content)
     global markdown_output
-    markdown_output += f'\n{content}'
+    if markdown_output is not None:
+        markdown_output += f'\n{content}'
 
 
 def read_from_file(file_path):
@@ -40,10 +42,8 @@ def time_diff(from_t, to):
 
 
 def print_summary(uri, branch, fix_count, days):
-    summary = f"""\n\nScanning {uri} repo, branch:{branch}\n"""
-    f"""Found {fix_count} bugfix commits in the last {days} days"""
-    print(summary)
-    write_to_markdown(summary)
+    output_report(f"""\n\nScanning {uri} repo, branch:{branch}\n"""
+                  f"""Found {fix_count} bugfix commits in the last {days} days""")
 
 
 def get_current_vcs(path):
@@ -87,9 +87,9 @@ def get_code_hotspots(options):
     commits = get_fix_commits(options.branch, options.days, options.path)
 
     if not commits:
-        no_commits_message = f"No commits found with matching search criteria at: {options.path} branch: {options.branch}"
-        print(no_commits_message)
-        write_to_markdown(no_commits_message)
+        output_report(
+            f"No commits found with matching search criteria at: {options.path} branch: {options.branch}")
+
         return None
 
     print_summary(options.path, options.branch, len(commits), options.days)
@@ -97,9 +97,7 @@ def get_code_hotspots(options):
     (last_message, last_date, last_files) = commits[-1]
     current_dt = datetime.datetime.now()
 
-    fixes_string = f"\nFixes\n{('-' * 80)}"
-    print(fixes_string)
-    write_to_markdown(fixes_string)
+    output_report(f"\nFixes\n{('-' * 80)}")
 
     hotspots = {}
 
@@ -121,15 +119,11 @@ def get_code_hotspots(options):
 
             hotspots[filename] += hotspot_factor
 
-        message_string = f"      -{message}"
-        print(message_string)
-        write_to_markdown(message_string)
+        output_report(f"      -{message}")
 
     sorted_hotspots = sorted(hotspots, key=hotspots.get, reverse=True)
 
-    hotspots_header = f"\nHotspots\n{('-' * 80)}"
-    print(hotspots_header)
-    write_to_markdown(hotspots_header)
+    output_report(f"\nHotspots\n{('-' * 80)}")
     for k in sorted_hotspots[:options.limit]:
         yield (hotspots[k], k)
 
@@ -138,11 +132,8 @@ def print_code_hotspots(options):
     code_hotspots = get_code_hotspots(options)
     if code_hotspots is not None:
         for factor, filename in code_hotspots:
-            code_hotspots_string = f"      {factor:.2f} = {filename}"
-            print(code_hotspots_string)
-            write_to_markdown(code_hotspots_string)
-        print("\n")
-        write_to_markdown("\n")
+            output_report(f"      {factor:.2f} = {filename}")
+        output_report("\n")
 
 
 def write_to_markdown_file(markdown_filepath):
@@ -202,6 +193,9 @@ def main():
         bugs_list = read_from_file(options.bugsFile)
         global description_regex
         description_regex = re.compile(f'^.*({bugs_list}).*$')
+    if options.markdown is None:
+        global markdown_output
+        markdown_output = None
     for path in options.paths:
         option = options
         option.path = path
