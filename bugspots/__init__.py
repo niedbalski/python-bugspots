@@ -145,6 +145,15 @@ def print_code_hotspots(options):
         write_to_markdown("\n")
 
 
+def write_to_markdown_file(options):
+    output_filepath = options.markdown if options.markdown != None else f'markdown_output_{datetime.datetime.now()}.md'
+    global markdown_output
+    markdown_output.insert(0, "```")
+    markdown_output += "```"
+    with open(output_filepath, 'w') as file_writer:
+        file_writer.writelines(markdown_output)
+
+
 def parse_options():
     parser = argparse.ArgumentParser(
         description="""A Python based implementation of the bug"""
@@ -171,7 +180,7 @@ def parse_options():
     parser.add_argument("--bugsFile",
                         help='Use a file with list of bugs',
                         type=str,
-                        metavar="file")
+                        metavar="bugsFilePath")
 
     parser.add_argument("--paths",
                         help='Provide repository paths to look into',
@@ -182,8 +191,7 @@ def parse_options():
     parser.add_argument("--markdown",
                         help='Provide a filename for output in markdown',
                         type=str,
-                        metavar='markdownOutputFile'
-
+                        metavar='markdownOutputFilePath'
                         )
 
     return parser.parse_args()
@@ -199,6 +207,8 @@ def main():
         option = options
         option.path = path
         print_code_hotspots(option)
+    if options.markdown is not None:
+        write_to_markdown_file(options.markdown)
 
 
 if __name__ == '__main__':
