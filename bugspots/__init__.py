@@ -5,11 +5,20 @@ import argparse
 import datetime
 import math
 import re
-import sys
 import csv
 
 description_regex = re.compile(
     r"^.*([B|b]ug)s?|([f|F]ix(es|ed)?|[c|C]lose(s|d)?)|(([Q|q][F|f])-\d?).*$")
+
+markdown_output = str(
+    f'# Bughotspots Report\n### Generated at {datetime.datetime.now()}\n```console')
+
+
+def output_report(content):
+    print(content)
+    global markdown_output
+    if markdown_output is not None:
+        markdown_output += f'\n{content}'
 
 
 def read_from_file(file_path):
@@ -23,6 +32,7 @@ def read_from_file(file_path):
                 bugs_string = f'{bugs_string}|({row[0]})'
     return bugs_string
 
+
 def to_seconds_float(timedelta):
     return (timedelta.seconds + timedelta.microseconds / 1E6)
 
@@ -32,9 +42,8 @@ def time_diff(from_t, to):
 
 
 def print_summary(uri, branch, fix_count, days):
-    print("""\n\nScanning %s repo, branch:%s\n"""
-          """Found %d bugfix commits in the last %d days"""
-          % (uri, branch, fix_count, days))
+    output_report(f"""\n\nScanning {uri} repo, branch:{branch}\n"""
+                  f"""Found {fix_count} bugfix commits in the last {days} days""")
 
 
 def get_current_vcs(path):
@@ -44,7 +53,7 @@ def get_current_vcs(path):
         vcs = vcs_abstraction.get_vcs(vcs_type)
         if vcs.static_detect_presence(path):
             return vcs(path)
-    raise Exception("Not found a valid VCS repository")
+    raise Exception("Did not find a valid VCS repository")
 
 
 def get_fix_commits(branch, days, path='.'):
@@ -64,7 +73,7 @@ def get_fix_commits(branch, days, path='.'):
 
             if commit_date >= days_ago and \
                description_regex.search(message):
-                yield((message, commit_date, vcs.get_affected_files(id)))
+                yield(message, commit_date, vcs.get_affected_files(id))
 
     days_ago = (datetime.datetime.now() - datetime.timedelta(days=days))
 
@@ -78,8 +87,9 @@ def get_code_hotspots(options):
     commits = get_fix_commits(options.branch, options.days, options.path)
 
     if not commits:
-        print(
-            f"Did not find commits matching search criteria for repo at: {options.path} branch: {options.branch}")
+        output_report(
+            f"No commits found with matching search criteria at: {options.path} branch: {options.branch}")
+
         return None
 
     print_summary(options.path, options.branch, len(commits), options.days)
@@ -87,7 +97,7 @@ def get_code_hotspots(options):
     (last_message, last_date, last_files) = commits[-1]
     current_dt = datetime.datetime.now()
 
-    print("\nFixes\n%s" % ('-' * 80))
+    output_report(f"\nFixes\n{('-' * 80)}")
 
     hotspots = {}
 
@@ -104,16 +114,16 @@ def get_code_hotspots(options):
                 hotspots[filename] = 0
             try:
                 hotspot_factor = 1/(1+math.exp((-12 * factor) + 12))
-            except:
+            except ArithmeticError:
                 pass
 
             hotspots[filename] += hotspot_factor
 
-        print("      -%s" % message)
+        output_report(f"      -{message}")
 
     sorted_hotspots = sorted(hotspots, key=hotspots.get, reverse=True)
 
-    print("\nHotspots\n%s" % ('-' * 80))
+    output_report(f"\nHotspots\n{('-' * 80)}")
     for k in sorted_hotspots[:options.limit]:
         yield (hotspots[k], k)
 
@@ -122,8 +132,16 @@ def print_code_hotspots(options):
     code_hotspots = get_code_hotspots(options)
     if code_hotspots is not None:
         for factor, filename in code_hotspots:
-            print("      %.2f = %s" % (factor, filename))
-        print("\n")
+            output_report(f"      {factor:.2f} = {filename}")
+        output_report("\n")
+
+
+def write_to_markdown_file(markdown_filepath):
+    output_filepath = f'{markdown_filepath}_{datetime.datetime.now()}.md'
+    global markdown_output
+    markdown_output += "```"
+    with open(output_filepath, 'w') as file_writer:
+        file_writer.writelines(markdown_output)
 
 
 def parse_options():
@@ -152,13 +170,19 @@ def parse_options():
     parser.add_argument("--bugsFile",
                         help='Use a file with list of bugs',
                         type=str,
-                        metavar="file")
+                        metavar="bugsFilePath")
 
     parser.add_argument("--paths",
                         help='Provide repository paths to look into',
                         type=str,
                         nargs="*",
                         metavar="paths")
+
+    parser.add_argument("--markdown",
+                        help='Provide a filename for output in markdown',
+                        type=str,
+                        metavar='markdownOutputFilePath'
+                        )
 
     return parser.parse_args()
 
@@ -169,10 +193,15 @@ def main():
         bugs_list = read_from_file(options.bugsFile)
         global description_regex
         description_regex = re.compile(f'^.*({bugs_list}).*$')
+    if options.markdown is None:
+        global markdown_output
+        markdown_output = None
     for path in options.paths:
         option = options
         option.path = path
         print_code_hotspots(option)
+    if options.markdown is not None:
+        write_to_markdown_file(options.markdown)
 
 
 if __name__ == '__main__':
