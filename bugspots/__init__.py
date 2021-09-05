@@ -5,13 +5,13 @@ import argparse
 import datetime
 import math
 import re
-import sys
 import csv
 
 description_regex = re.compile(
     r"^.*([B|b]ug)s?|([f|F]ix(es|ed)?|[c|C]lose(s|d)?)|(([Q|q][F|f])-\d?).*$")
 
-markdown_output = str(f'# {datetime.datetime.now()}')
+markdown_output = str(
+    f'# Bughotspots Report\n### Generated at {datetime.datetime.now()}\n```console')
 
 
 def write_to_markdown(content):
@@ -145,10 +145,9 @@ def print_code_hotspots(options):
         write_to_markdown("\n")
 
 
-def write_to_markdown_file(options):
-    output_filepath = options.markdown if options.markdown != None else f'markdown_output_{datetime.datetime.now()}.md'
+def write_to_markdown_file(markdown_filepath):
+    output_filepath = f'{markdown_filepath}_{datetime.datetime.now()}.md'
     global markdown_output
-    markdown_output.insert(0, "```")
     markdown_output += "```"
     with open(output_filepath, 'w') as file_writer:
         file_writer.writelines(markdown_output)
