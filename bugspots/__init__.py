@@ -11,6 +11,13 @@ import csv
 description_regex = re.compile(
     r"^.*([B|b]ug)s?|([f|F]ix(es|ed)?|[c|C]lose(s|d)?)|(([Q|q][F|f])-\d?).*$")
 
+markdown_output = str(f'# {datetime.datetime.now()}')
+
+
+def write_to_markdown(content):
+    global markdown_output
+    markdown_output += f'\n{content}'
+
 
 def read_from_file(file_path):
     bugs_string = ''
@@ -23,6 +30,7 @@ def read_from_file(file_path):
                 bugs_string = f'{bugs_string}|({row[0]})'
     return bugs_string
 
+
 def to_seconds_float(timedelta):
     return (timedelta.seconds + timedelta.microseconds / 1E6)
 
@@ -32,9 +40,10 @@ def time_diff(from_t, to):
 
 
 def print_summary(uri, branch, fix_count, days):
-    print("""\n\nScanning %s repo, branch:%s\n"""
-          """Found %d bugfix commits on the last %d days"""
-          % (uri, branch, fix_count, days))
+    summary = f"""\n\nScanning {uri} repo, branch:{branch}\n"""
+    f"""Found {fix_count} bugfix commits in the last {days} days"""
+    print(summary)
+    write_to_markdown(summary)
 
 
 def get_current_vcs(path):
@@ -78,7 +87,9 @@ def get_code_hotspots(options):
     commits = get_fix_commits(options.branch, options.days, options.path)
 
     if not commits:
-        print("Not found commits matching search criteria")
+        no_commits_message = "No commits found with matching search criteria"
+        print(no_commits_message)
+        write_to_markdown(no_commits_message)
         sys.exit(-1)
 
     print_summary(options.path, options.branch, len(commits), options.days)
@@ -86,7 +97,9 @@ def get_code_hotspots(options):
     (last_message, last_date, last_files) = commits[-1]
     current_dt = datetime.datetime.now()
 
-    print("\nFixes\n%s" % ('-' * 80))
+    fixes_string = f"\nFixes\n{('-' * 80)}"
+    print(fixes_string)
+    write_to_markdown(fixes_string)
 
     hotspots = {}
 
@@ -103,24 +116,31 @@ def get_code_hotspots(options):
                 hotspots[filename] = 0
             try:
                 hotspot_factor = 1/(1+math.exp((-12 * factor) + 12))
-            except:
+            except ArithmeticError:
                 pass
 
             hotspots[filename] += hotspot_factor
 
-        print("      -%s" % message)
+        message_string = f"      -{message}"
+        print(message_string)
+        write_to_markdown(message_string)
 
     sorted_hotspots = sorted(hotspots, key=hotspots.get, reverse=True)
 
-    print("\nHotspots\n%s" % ('-' * 80))
+    hotspots_header = f"\nHotspots\n{('-' * 80)}"
+    print(hotspots_header)
+    write_to_markdown(hotspots_header)
     for k in sorted_hotspots[:options.limit]:
         yield (hotspots[k], k)
 
 
 def print_code_hotspots(options):
     for factor, filename in get_code_hotspots(options):
-        print("      %.2f = %s" % (factor, filename))
+        code_hotspots = f"      {factor:.2f} = {filename}"
+        print(code_hotspots)
+        write_to_markdown(code_hotspots)
     print("\n")
+    write_to_markdown("\n")
 
 
 def parse_options():
@@ -156,6 +176,13 @@ def parse_options():
                         type=str,
                         nargs="*",
                         metavar="paths")
+
+    parser.add_argument("--markdown",
+                        help='Provide a filename for output in markdown',
+                        type=str,
+                        metavar='markdownOutputFile'
+
+                        )
 
     return parser.parse_args()
 
