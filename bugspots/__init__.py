@@ -53,7 +53,7 @@ def get_current_vcs(path):
         vcs = vcs_abstraction.get_vcs(vcs_type)
         if vcs.static_detect_presence(path):
             return vcs(path)
-    raise Exception("Not found a valid VCS repository")
+    raise Exception("Did not find a valid VCS repository")
 
 
 def get_fix_commits(branch, days, path='.'):
@@ -73,7 +73,7 @@ def get_fix_commits(branch, days, path='.'):
 
             if commit_date >= days_ago and \
                description_regex.search(message):
-                yield((message, commit_date, vcs.get_affected_files(id)))
+                yield(message, commit_date, vcs.get_affected_files(id))
 
     days_ago = (datetime.datetime.now() - datetime.timedelta(days=days))
 
@@ -87,10 +87,10 @@ def get_code_hotspots(options):
     commits = get_fix_commits(options.branch, options.days, options.path)
 
     if not commits:
-        no_commits_message = "No commits found with matching search criteria"
+        no_commits_message = f"No commits found with matching search criteria at: {options.path} branch: {options.branch}"
         print(no_commits_message)
         write_to_markdown(no_commits_message)
-        sys.exit(-1)
+        return None
 
     print_summary(options.path, options.branch, len(commits), options.days)
 
@@ -135,12 +135,14 @@ def get_code_hotspots(options):
 
 
 def print_code_hotspots(options):
-    for factor, filename in get_code_hotspots(options):
-        code_hotspots = f"      {factor:.2f} = {filename}"
-        print(code_hotspots)
-        write_to_markdown(code_hotspots)
-    print("\n")
-    write_to_markdown("\n")
+    code_hotspots = get_code_hotspots(options)
+    if code_hotspots is not None:
+        for factor, filename in code_hotspots:
+            code_hotspots_string = f"      {factor:.2f} = {filename}"
+            print(code_hotspots_string)
+            write_to_markdown(code_hotspots_string)
+        print("\n")
+        write_to_markdown("\n")
 
 
 def parse_options():

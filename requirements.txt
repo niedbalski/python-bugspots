@@ -1,0 +1,5 @@
+bug-hot-spots==0.1
+python-dateutil==2.8.2
+PyYAML==5.4.1
+six==1.16.0
+vcstools-latest==0.1.39
